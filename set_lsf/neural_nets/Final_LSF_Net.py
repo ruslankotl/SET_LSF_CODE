@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import logging
 logger = logging.getLogger(__name__)
-from NMR_4ll_Net import NMR_MPNN
+from neural_nets.NMR_4ll_Net import NMR_MPNN
 import collections
 device = "cuda" if torch.cuda.is_available() else "cpu"
 HOME = '/gpfs/workspace/users/kingse01/set_lsf/set_lsf/neural_nets/trained_models/'
