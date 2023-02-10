@@ -33,7 +33,7 @@ def parent_centres(reactant_smiles:str, product_smiles:str)->np.array(list):
     for reactant_index, prod_index in enumerate(match):
           if prod_index in reaction_sites:
                centres.append(reactant_index)
-    centres = sorted(centres)
+
     return np.array(centres)
 
 def main():
