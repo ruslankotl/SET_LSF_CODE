@@ -28,10 +28,8 @@ Code for the <sup>13</sup>C NMR pretraining and LSF finetuning as described in K
 ## How to Use
 To run predictions on new molecules:
 1. Prepare an excel file in the format of ```prospective_with_product_smiles.xlsx```.
-2. Run ```excel_to_gss.py```.
-3. Follow the ```### BASH COMMANDS ###``` listed at the end of ```excel_to_gss.py```.
-4. Run ```gss_to_react_centers.py```.
-5. Run ```Run_New_Molecules.py -d {PATH TO gss_to_react_centers.py OUTPUT} -m neural_nets/trained_models/best_retrospective_model -s {PATH TO SAVE FILE}```.
+2. Run ```rdkit_react_centres.py```.
+3. Run ```Run_New_Molecules.py -d {PATH TO gss_to_react_centers.py OUTPUT} -m neural_nets/trained_models/best_retrospective_model -s {PATH TO SAVE FILE}```.
 
 ## Dependencies
 Run on python 3.7.
@@ -45,7 +43,6 @@ Run on python 3.7.
 * networkx==1.11
 * tdqm==4.62.3
 * sklearn==1.0.1
-* [Glasgow Subgraph Solver](https://github.com/ciaranm/glasgow-subgraph-solver)
 * os
 * pathlib
 * collections
