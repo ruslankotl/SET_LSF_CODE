@@ -29,7 +29,7 @@ def init_args():
     parser.add_argument('--train_data_path', '-train', type=str)
     parser.add_argument('--test_data_path', '-test', type=str)
     parser.add_argument('--save_path', '-s', type=str)
-    parser.add_argument('--pretrain_model_path', '-m', type=str, default="trained_models/nmr_model")
+    parser.add_argument('--pretrain_model_path', '-m', type=str, default="neural_nets/trained_models/nmr_model")
     parser.add_argument('--nmr_data_path', '-nmr', type=str, default="data/13C_nmrshiftdb.pickle")
     parser.add_argument('--weight_hyperparam', '-w', type=float)
     return parser.parse_args()

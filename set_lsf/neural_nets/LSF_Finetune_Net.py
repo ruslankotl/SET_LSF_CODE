@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import logging
 logger = logging.getLogger(__name__)
-from NMR_Pretrain_Net import NMR_MPNN
+from neural_nets.NMR_4ll_Net import NMR_MPNN
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class LSF_MPNN(nn.Module):
