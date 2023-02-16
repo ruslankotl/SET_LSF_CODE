@@ -34,7 +34,7 @@ Code for the <sup>13</sup>C NMR pretraining and LSF finetuning as described in K
 ## How to Use
 To run predictions on new molecules:
 1. Prepare an excel file in the format of ```prospective_with_product_smiles.xlsx```.
-2. Run ```reacting_centres.py```.
+2. Run ```reacting_centres.py -d {PATH to your excel file} -s {PATH to save file}```.
 3. Run ```Run_New_Molecules.py -d {PATH TO gss_to_react_centers.py OUTPUT} -m neural_nets/trained_models/best_retrospective_model -s {PATH TO SAVE FILE}```.
 
 ## Dependencies
