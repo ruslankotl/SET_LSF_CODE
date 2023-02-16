@@ -4,7 +4,7 @@ and validation dataframes.
 
 Credit to Dr. Pau Riba & Dr. Anjan Dutta for the original MPNN code.
 '''
-
+#TODO: sort out the reaction centre thing
 import numpy as np
 import pandas as pd
 from rdkit import Chem
@@ -21,6 +21,20 @@ This function is for a single compound.
     Args:
         csv_data (dataframe): The pre-split dataframe.
 '''
+def parent_centres(reactant_smiles:str, product_smiles:str)->np.array(list):
+        reactant = Chem.MolFromSmiles(reactant_smiles)
+        product = Chem.MolFromSmiles(product_smiles)
+        match = product.GetSubstructMatch(reactant)
+
+        reaction_sites = [atom.GetIdx() for atom in product.GetAtoms() \
+         if (atom.GetIdx() in match) and \
+         not all((n.GetIdx() in match) for n in atom.GetNeighbors())]
+
+        centres = [reactant_index for reactant_index, prod_index in enumerate(match)
+            if prod_index in reaction_sites]
+
+        return np.array(centres)
+
 def make_labels(pickle_data, longest_molecule):
     reaction_sites = pickle_data['parent_centres']
 
@@ -66,18 +80,20 @@ def one_hot_Y(df_row):
     return num_sites
 '''
 Finding the number of heavy atoms for every molecule
-in the dataframe.
+in the dataframe and assign reaction centres.
     Args:
         df (dataframe): The pre-split dataframe.
 '''
 def num_atoms(df):
-    molecules = df['reactant']
-    nha = []
-    for m in molecules:
-        m = Chem.MolFromSmiles(m)
-        num_heavy_atoms = m.GetNumHeavyAtoms()
-        nha.append(num_heavy_atoms)
-    df['nha'] = nha
+
+    def get_num_atoms(mol):
+        mol = Chem.MolFromSmiles(mol)
+        num_heavy_atoms = mol.GetNumHeavyAtoms()
+        return num_heavy_atoms
+
+    df['nha'] = df['reactant'].apply(get_num_atoms)
+    df['parent_centres'] = df.loc[:,('reactant', 'product')].apply(lambda mols:
+    parent_centres(*mols.to_list()), axis=1)
     return df
 
 '''
