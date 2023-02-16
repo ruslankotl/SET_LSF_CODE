@@ -38,17 +38,22 @@ def main():
     df = pd.read_excel(data_path)
 
     reaction_sites = []
+    canon_sms = []
+    canon_ps = []
 
     for i in range(len(df)):
         # Canonicalizing the SMILES strings - must be done for consistent mapping!
         sm = Chem.CanonSmiles(df.loc[i, 'reactant'])
+        canon_sms.append(sm)
         if pd.isna(df.loc[i, 'product']) == True or df.loc[i, 'product'] == 'NO STRUCTURE':
             p = Chem.CanonSmiles(df.loc[i, 'reactant'])
         else:
             p = Chem.CanonSmiles(df.loc[i, 'product'])
+        canon_ps.append(p)
         reaction_site = parent_centres(sm, p)
         reaction_sites.append(reaction_site)
-
+    df['reactant'] = canon_sms
+    df['product'] = canon_ps
     df['parent_centres'] = reaction_sites
     df.to_pickle(save_path)
 
