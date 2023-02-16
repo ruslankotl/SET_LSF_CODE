@@ -35,6 +35,20 @@ def parent_centres(reactant_smiles:str, product_smiles:str)->np.array(list):
 
         return np.array(centres)
 
+def canonicalise_and_preprocess(df):
+    def canon_row(row):
+        reactant_smi, product_smi = row
+        reactant_smi = Chem.CanonSmiles(reactant_smi)
+        if pd.isna(product_smi) or product_smi == 'NO STRUCTURE':
+            product_smi = reactant_smi
+        else:
+            product_smi = Chem.CanonSmiles(product_smi)
+        reaction_sites = parent_centres(reactant_smi, product_smi)
+        return pd.Series([reactant_smi, product_smi, reaction_sites])
+
+    df[['reactant', 'product', 'parent_centres']] = df[['reactant','product']].apply(canon_row,axis=1)
+    return df
+
 def make_labels(pickle_data, longest_molecule):
     reaction_sites = pickle_data['parent_centres']
 
@@ -92,8 +106,7 @@ def num_atoms(df):
         return num_heavy_atoms
 
     df['nha'] = df['reactant'].apply(get_num_atoms)
-    df['parent_centres'] = df.loc[:,('reactant', 'product')].apply(lambda mols:
-    parent_centres(*mols.to_list()), axis=1)
+    
     return df
 
 '''
