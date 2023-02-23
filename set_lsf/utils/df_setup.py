@@ -11,16 +11,18 @@ from rdkit import Chem
 from collections import Counter
 
 ########### DATAFRAME PREPARATION ###########
-'''
-Finding the reaction site atom indices. Note that the
-index corresponds to not only the correct atomic position
-in the SMILES when inputted into RDKit but also the correct
-atomic line in the xyz file (NOT USING CURRENTLY).
+def read_data(data_path:str):
+    pickle_extensions = ['.pkl', '.pickle']
+    excel_extensions = ['.xls', '.xlsx']
+    if any(data_path.endswith(ext) for ext in pickle_extensions):
+        return pd.read_pickle(data_path)
+    elif any(data_path.endswith(ext) for ext in excel_extensions):
+        return pd.read_excel(data_path)
+    elif data_path.endswith('.csv'):
+        return pd.read_csv(data_path)
+    else:
+        raise IOError('Wrong format.')
 
-This function is for a single compound.
-    Args:
-        csv_data (dataframe): The pre-split dataframe.
-'''
 def parent_centres(reactant_smiles:str, product_smiles:str)->np.array(list):
         reactant = Chem.MolFromSmiles(reactant_smiles)
         product = Chem.MolFromSmiles(product_smiles)
@@ -49,6 +51,17 @@ def canonicalise_and_preprocess(df):
     df[['reactant', 'product', 'parent_centres']] = df[['reactant','product']].apply(canon_row,axis=1)
     return df
 
+
+'''
+Finding the reaction site atom indices. Note that the
+index corresponds to not only the correct atomic position
+in the SMILES when inputted into RDKit but also the correct
+atomic line in the xyz file (NOT USING CURRENTLY).
+
+This function is for a single compound.
+    Args:
+        csv_data (dataframe): The pre-split dataframe.
+'''
 def make_labels(pickle_data, longest_molecule):
     reaction_sites = pickle_data['parent_centres']
 

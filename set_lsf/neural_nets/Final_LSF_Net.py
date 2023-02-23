@@ -65,7 +65,8 @@ class LSF_MPNN(nn.Module):
         )
         
         selectivity_states = gen_states(self.selectivity_weights_and_biases_path)
-        self.selectivity.load_state_dict(selectivity_states)
+        if len(selectivity_states)>0:
+            self.selectivity.load_state_dict(selectivity_states)
 
     def forward(self, h, g, rxn_vector):
 

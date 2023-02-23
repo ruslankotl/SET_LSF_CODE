@@ -12,7 +12,7 @@ import torch
 import logging
 from collections import Counter
 
-from neural_nets.LSF_Finetune_Net import LSF_MPNN
+from neural_nets.Final_LSF_Net import LSF_MPNN
 
 import utils.NMR_Pretrain_Setup as nmr
 from torch.utils.tensorboard import SummaryWriter
@@ -29,7 +29,7 @@ def init_args():
     parser.add_argument('--train_data_path', '-train', type=str)
     parser.add_argument('--test_data_path', '-test', type=str)
     parser.add_argument('--save_path', '-s', type=str)
-    parser.add_argument('--pretrain_model_path', '-m', type=str, default="neural_nets/trained_models/nmr_model")
+    parser.add_argument('--pretrain_model_path', '-m', type=str, default="neural_nets/trained_models/best_nmr_model")
     parser.add_argument('--nmr_data_path', '-nmr', type=str, default="data/13C_nmrshiftdb.pickle")
     parser.add_argument('--weight_hyperparam', '-w', type=float)
     return parser.parse_args()
@@ -80,10 +80,10 @@ def main():
     logger.setLevel(logging.DEBUG)
 
     # Reading in the standardized pickle file.
-    df = pd.read_pickle(train_data_path)
+    df = ds.read_data(train_data_path)
     df = df.reset_index(drop=True)
 
-    test_data = pd.read_pickle(test_data_path)
+    test_data = ds.read_data(test_data_path)
     test_data = test_data.reset_index(drop=True)
 
     logger.info("Data Loaded")
@@ -91,6 +91,9 @@ def main():
     # Defining device.
     device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info("Our device is %s", device)
+
+    df = ds.canonicalise_and_preprocess(df)
+    test_data = ds.canonicalise_and_preprocess(test_data)
 
     # Finding the number of heavy atoms for each reactant and the
     # longest molecule in the dataframe for paddings.
@@ -180,7 +183,7 @@ def main():
                  unique_solvents, unique_acids, unique_additives)
 
     # Define the model.
-    (g_0, h_t, rxn_vector_0), not_important = train_data[0]
+    (g_0, h_t, rxn_vector_0, nha), not_important = train_data[0]
 
     message_size = 30
     message_passes = 3
@@ -195,7 +198,7 @@ def main():
 
     del message_size, message_passes, rxn_features_length, atom_num_list, pretrain_model_path
 
-    # Set up the DataLoader()
+    # Set up the DataLoader() WHAY ARE THE DIMENSIONS???
     dataloader_train = ms.DataLoader(train_data, batch_size=64, shuffle=True, collate_fn=ms.collate_y)
     dataloader_val = ms.DataLoader(val_data, batch_size=64, shuffle=True, collate_fn=ms.collate_y)
     dataloader_test = ms.DataLoader(test_data, batch_size=64, shuffle=False, collate_fn=ms.collate_y)
@@ -219,15 +222,16 @@ def main():
         batch_val_loss = []
         # Training
         model.train()
-        for i, (g, h, rxn_vector, Y) in enumerate(dataloader_train):
+        for i, (g, h, rxn_vector, nha, Y) in enumerate(dataloader_train):
             g = g.to(device).float()
             h = h.to(device).float()
             rxn_vector = rxn_vector.to(device).float()
+            nha = nha.to(device).float()
             Y = Y.to(device).float()
 
             optimizer.zero_grad()
 
-            # Run through the MPNN
+            # Run through the MPNN for CUSTOM SCORES
             Y_pred = model(h, g, rxn_vector)
 
             under_w = underpred_loss_weights(Y, Y_pred.clone().detach())
@@ -252,7 +256,7 @@ def main():
         # Evaluating on validation set. Turn off gradients.
         model.eval()
         with torch.no_grad():
-            for i, (g, h, rxn_vector, Y) in enumerate(dataloader_val):
+            for i, (g, h, rxn_vector, nha, Y) in enumerate(dataloader_val):
                 # Move the variables to device.
                 g = g.to(device).float()
                 h = h.to(device).float()
@@ -285,7 +289,7 @@ def main():
 
     model.eval()
     with torch.no_grad():
-        for i, (g, h, rxn_vector, Y) in enumerate(dataloader_test):
+        for i, (g, h, rxn_vector, nha,Y) in enumerate(dataloader_test):
             # Note that shuffle is off for this dataloader so that results can be
             # appended to the preds dataframe in correct order.
             batch_size = g.size()[0]
